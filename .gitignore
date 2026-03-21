@@ -1,6 +1,9 @@
 # Local thought leadership content (not for public repo)
 .local/
 
+# Claude Code config (personal, not for public repo)
+CLAUDE.md
+
 # OS artifacts
 .DS_Store
 Thumbs.db
@@ -12,3 +15,6 @@ Thumbs.db
 
 # Original zip archive
 files.zip
+
+# Stale git directories
+.git-old/
