@@ -1,0 +1,14 @@
+# Local thought leadership content (not for public repo)
+.local/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Original zip archive
+files.zip
