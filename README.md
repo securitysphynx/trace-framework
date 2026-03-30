@@ -52,6 +52,14 @@ What you're evaluating: deployment fit, data compatibility, workflow integration
 
 What you're evaluating: output transparency, audit trails, the ability to explain decisions to analysts, leadership, legal teams, and regulators. If an AI system quarantines a legitimate email, blocks a production connection, or flags an employee for investigation, someone has to explain why. If you can't, the system is a liability regardless of its accuracy.
 
+### Agentic AI: Beyond the Five Dimensions
+
+The five TRACE dimensions apply to any AI system. But AI agents — systems that take autonomous actions like writing files, calling APIs, or executing commands — create additional evaluation requirements that traditional AI doesn't.
+
+When evaluating agents, TRACE still applies, but you need deeper treatment of forensic and operational concerns: action logging, attribution, session boundaries, permission scope, and rollback capabilities.
+
+See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for the full supplement.
+
 ## How to Use TRACE
 
 TRACE scales to the situation. It is not a compliance checklist or a formal assessment methodology. It is a structured way of thinking that adapts to the decision in front of you.
