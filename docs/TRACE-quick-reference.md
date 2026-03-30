@@ -57,6 +57,7 @@ Can I understand and justify this system's decisions to my team, my leadership, 
 | Writing AI acceptable use policy | Policy framework | All five |
 | Investigating an AI system failure | Forensic diagnostic | T, R, A first; then C, E |
 | Triaging a new AI claim or headline | Quick gut check | T, R |
+| Evaluating an AI agent deployment | Structured evaluation | All five + [Agent Supplement](../guides/TRACE-agentic-ai.md) |
 
 ---
 
