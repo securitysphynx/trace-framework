@@ -334,6 +334,182 @@ The end state we need:
 
 Until we get there, treat agent logging as you would any high-privilege system: trust but verify, defense in depth, and assume the logs you have may be incomplete.
 
+## The Future State: What Good Agent Logging Looks Like
+
+This section describes what *should* exist — a target for vendors building agent platforms, enterprises defining requirements, and standards bodies developing specifications.
+
+### Minimum Viable Agent Log Schema
+
+Every agent action log entry should contain:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `timestamp` | ISO 8601, millisecond precision, UTC | `2026-03-30T19:45:12.847Z` |
+| `session_id` | Unique identifier for the agent session | `ses_a1b2c3d4e5f6` |
+| `trace_id` | Distributed tracing ID for cross-system correlation | `tr_7g8h9i0j1k2l` |
+| `parent_id` | ID of the action that triggered this one (if any) | `act_m3n4o5p6q7r8` |
+| `action_id` | Unique identifier for this specific action | `act_s9t0u1v2w3x4` |
+| `action_type` | Category of action | `tool_call`, `file_read`, `api_request`, `subprocess` |
+| `action_detail` | Specific action taken | `{"tool": "bash", "command": "git status"}` |
+| `actor` | Identity of the agent (service principal, API key hash) | `agent:prod-assistant-01` |
+| `user_context` | Human who initiated the session (if applicable) | `user:jane.doe@example.com` |
+| `input_hash` | Hash of the input that triggered this action | `sha256:a1b2c3...` |
+| `output_hash` | Hash of the action's output | `sha256:d4e5f6...` |
+| `outcome` | Result status | `success`, `failure`, `denied`, `timeout` |
+| `permissions_used` | What permissions were exercised | `["file:read:/var/log/*", "net:connect:api.example.com"]` |
+| `approval_ref` | Reference to human approval (if action required it) | `approval_y5z6a7b8` |
+| `token_usage` | LLM tokens consumed (input/output/total) | `{"input": 1250, "output": 340, "total": 1590}` |
+| `cost_usd` | Estimated cost of this action (for cost attribution) | `0.0127` |
+| `process_id` | OS process ID of the agent (for OS telemetry correlation) | `48291` |
+| `parent_pid` | Parent process ID (process tree reconstruction) | `48102` |
+| `hostname` | Host where agent is running | `prod-agent-node-03.example.com` |
+| `container_id` | Container ID if containerized | `sha256:e3b0c44298fc...` |
+
+### Reasoning Chain Preservation
+
+Beyond actions, preserve the agent's decision process:
+
+**Planning logs** — When the agent formulates a plan, log it:
+```json
+{
+  "type": "plan",
+  "session_id": "ses_a1b2c3d4e5f6",
+  "plan_id": "plan_c8d9e0f1",
+  "goal": "Summarize Q1 sales reports",
+  "steps": [
+    {"step": 1, "description": "List files in /reports/q1/"},
+    {"step": 2, "description": "Read each PDF file"},
+    {"step": 3, "description": "Extract key metrics"},
+    {"step": 4, "description": "Generate summary"}
+  ],
+  "timestamp": "2026-03-30T19:45:10.123Z"
+}
+```
+
+**Decision points** — When the agent chooses between options, log the alternatives considered:
+```json
+{
+  "type": "decision",
+  "session_id": "ses_a1b2c3d4e5f6",
+  "decision_id": "dec_g2h3i4j5",
+  "context": "Multiple files match pattern",
+  "options_considered": [
+    {"option": "Read all 47 files", "rejected_reason": "Too many, would exceed context"},
+    {"option": "Read 10 most recent", "selected": true},
+    {"option": "Ask user to narrow scope", "rejected_reason": "User said 'all Q1 reports'"}
+  ],
+  "timestamp": "2026-03-30T19:45:11.456Z"
+}
+```
+
+**Error recovery** — When something fails and the agent adapts:
+```json
+{
+  "type": "error_recovery",
+  "session_id": "ses_a1b2c3d4e5f6",
+  "failed_action": "act_k6l7m8n9",
+  "error": "Permission denied: /reports/q1/confidential/",
+  "recovery_strategy": "Skip inaccessible directory, continue with accessible files",
+  "timestamp": "2026-03-30T19:45:12.789Z"
+}
+```
+
+### Correlation and Trace Context
+
+Agent logs must integrate with distributed tracing infrastructure:
+
+**Trace propagation** — When an agent calls an API or spawns a subprocess, the trace context must propagate:
+- W3C Trace Context headers for HTTP calls
+- Environment variables for subprocesses
+- Metadata fields for message queues
+
+**Cross-system joins** — The `trace_id` should appear in:
+- Agent platform logs
+- API provider logs (if they support trace context)
+- Endpoint telemetry (process creation, file access)
+- Network logs (proxy/firewall)
+- Identity system logs (authentication, authorization)
+
+**Session hierarchy** — For long-running or nested agents:
+```
+session_id: ses_parent_001
+├── action: Spawned sub-agent for research
+│   └── session_id: ses_child_002 (parent_session: ses_parent_001)
+│       ├── action: Web search
+│       └── action: Summarize results
+└── action: Incorporated sub-agent results
+```
+
+### Tamper-Evidence Requirements
+
+Logs must be verifiable:
+
+**Cryptographic chaining** — Each log entry includes a hash of the previous entry, creating a chain:
+```json
+{
+  "action_id": "act_s9t0u1v2w3x4",
+  "prev_hash": "sha256:abc123...",
+  "entry_hash": "sha256:def456...",
+  ...
+}
+```
+
+**Signed batches** — Periodically, the logging system signs a batch of entries:
+```json
+{
+  "type": "batch_signature",
+  "batch_start": "act_a1b2c3",
+  "batch_end": "act_s9t0u1v2w3x4",
+  "merkle_root": "sha256:789xyz...",
+  "signature": "...",
+  "signer": "logging-service-prod",
+  "timestamp": "2026-03-30T19:50:00.000Z"
+}
+```
+
+**Third-party attestation** — For high-assurance environments, log hashes are periodically anchored to an external timestamping service or blockchain.
+
+**Separation of write and delete** — The agent has credentials to *append* logs but not to *modify* or *delete*. Deletion requires a separate, audited process with human approval.
+
+### Retention and Export Standards
+
+**Minimum retention periods** by action type:
+| Action Type | Minimum Retention | Rationale |
+|-------------|-------------------|-----------|
+| Security-relevant (auth, permission changes) | 7 years | Compliance, legal discovery |
+| Data access (file read, database query) | 3 years | Privacy audits, breach investigation |
+| External communication (API calls, messages) | 3 years | Incident reconstruction |
+| Routine operations (status checks, logging) | 1 year | Operational debugging |
+
+**Export formats** — Logs should be exportable in:
+- JSON Lines (for processing)
+- CEF/LEEF (for SIEM integration)
+- OCSF (Open Cybersecurity Schema Framework, emerging standard)
+- Parquet (for long-term archival and analytics)
+
+**Ownership** — Enterprise customers own their logs. Vendors must provide:
+- Full export capability (not just summaries)
+- API access for real-time streaming
+- Clear data residency and jurisdiction controls
+- Deletion capability when retention expires (with audit trail of the deletion)
+
+### The Ideal: A Complete Forensic Record
+
+When an incident occurs involving an AI agent, investigators should be able to answer:
+
+1. **What was the agent asked to do?** (original prompt, user context)
+2. **What did it plan to do?** (planning logs)
+3. **What did it actually do?** (action logs, complete)
+4. **Why did it make each decision?** (decision points, reasoning)
+5. **What permissions did it have?** (permission scope at each point)
+6. **What failed or was denied?** (error logs, access denials)
+7. **Who approved sensitive actions?** (approval references)
+8. **Can we trust these logs?** (cryptographic verification, attestation)
+9. **Can we correlate with other systems?** (trace IDs, timestamps)
+10. **Can we reproduce the scenario?** (inputs, state, configuration)
+
+This is the standard we should hold agent platforms to. Today, most achieve perhaps 2-3 of these. The goal is all 10.
+
 ## Summary
 
 Agents are not just AI systems that happen to take actions. They are a distinct category with forensic requirements traditional AI doesn't create.
