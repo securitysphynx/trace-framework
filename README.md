@@ -132,6 +132,7 @@ See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, loggin
 | Resource | Purpose |
 |----------|---------|
 | [Quick Reference Card](docs/TRACE-quick-reference.md) | One-page TRACE summary |
+| [Visual Guide](docs/TRACE-visual-guide.md) | Pyramid diagram for teaching and workshops |
 | [Agentic AI Supplement](guides/TRACE-agentic-ai.md) | Extended evaluation guidance for AI agents |
 | [Skills for AI Assistants](skills/) | Prompts to apply TRACE with Claude, Cursor, and other AI tools |
 
