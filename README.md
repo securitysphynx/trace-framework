@@ -1,83 +1,131 @@
-# TRACE: Trust Reasoning for AI in Cybersecurity Environments
+# TRACE
 
-TRACE is a lightweight evaluation framework for cybersecurity professionals who need to make informed decisions about AI systems, AI-generated output, and AI-related claims in their daily work.
+**Trust Reasoning for AI in Cybersecurity Environments**
 
-It was built for the people who don't build models but are increasingly asked to trust them: SOC analysts acting on AI-generated alerts, security engineers evaluating AI-powered products, GRC teams writing AI policy, and incident responders investigating AI system failures.
+> *Should I trust this AI system, and can I defend that decision?*
 
-## Status
+A framework for security professionals who don't build models but are increasingly asked to trust them.
 
-**Work in progress.** TRACE is under active development. The core framework (five evaluation dimensions) is stable. Supporting materials, use-case guides, and practitioner resources are being developed. Contributions, feedback, and real-world testing are welcome.
+---
 
-## The Problem
+## The Five Dimensions
 
-Security professionals are adopting AI tools faster than they're developing the judgment to evaluate them. We have mature methodologies for evaluating firewall rules, triaging vulnerabilities, and assessing organizational risk. We don't have an equivalent for the question practitioners face every day: *should I trust this AI system, and can I defend that decision?*
+| | Dimension | Core Question |
+|:---:|:---|:---|
+| **T** | **Training** | What was this trained on? Is the foundation sound? |
+| **R** | **Reliability** | How does this fail? How would I know? |
+| **A** | **Attack Surface** | How could an adversary manipulate this? |
+| **C** | **Context** | Does this fit *my* environment? |
+| **E** | **Explainability** | Can I justify this decision to stakeholders? |
 
-Vendor marketing says "trust us." Academic literature on adversarial ML is rigorous but inaccessible to most practitioners. The gap between those two poles is where real security decisions get made, and right now people are making them without a structured approach.
+---
 
-TRACE fills that gap.
+## T — Training
 
-## The Framework
+**What was this system trained on, and is that foundation sound?**
 
-TRACE provides five evaluation dimensions. They apply to any AI system, any AI-generated output, or any AI-related claim a security professional encounters.
+| Evaluate | Why It Matters |
+|----------|----------------|
+| Data provenance | You can't trust what you can't trace |
+| Representativeness | Models learn from data — if your threats aren't in it, neither is detection |
+| Freshness | Yesterday's training data misses today's techniques |
+| Poisoning risk | Adversaries target training pipelines |
 
-### T — Training
+---
 
-**Core question:** What was this system trained on, and is that foundation sound?
+## R — Reliability
 
-What you're evaluating: data provenance, representativeness, freshness, labeling quality, bias, poisoning risk, and data supply chain integrity. A model is only as trustworthy as the data it learned from. If you don't know what that data is, you don't know what the model actually learned.
+**How does this system fail, and how would I know?**
 
-### R — Reliability
+| Evaluate | Why It Matters |
+|----------|----------------|
+| Error rates (FP/FN) | "99% accurate" means nothing without base rates |
+| Failure modes | Silent degradation is worse than loud failure |
+| Drift monitoring | Models rot — is anyone watching? |
+| Threshold sensitivity | Small config changes, big outcome swings |
 
-**Core question:** How does this system fail, and how would I know?
+---
 
-What you're evaluating: error rates (precision, recall, false positive/negative tradeoffs), failure modes, silent degradation, data drift, concept drift, threshold sensitivity, and base rate performance. A model that is 99% accurate can still flood your SOC with false positives if the base rate of real attacks is low enough. Reliability is not about accuracy numbers; it's about whether the failure modes are acceptable for your operational context.
+## A — Attack Surface
 
-### A — Attack Surface
+**How could an adversary manipulate this system?**
 
-**Core question:** How could an adversary manipulate this system?
+| Threat | Example |
+|--------|---------|
+| Evasion | Crafted inputs that bypass detection |
+| Poisoning | Corrupting training data to shape behavior |
+| Prompt injection | Hijacking LLM context (direct or indirect) |
+| Extraction | Stealing model weights or training data |
+| Supply chain | Compromised models, plugins, dependencies |
 
-What you're evaluating: evasion attacks, data poisoning, prompt injection (direct and indirect), model extraction, training data extraction, supply chain compromise, and adversarial inputs. AI systems are not just tools; they are attack surfaces. An adversary who understands your detection model can craft inputs that bypass it. An adversary who can influence your training data can shape what the model learns. Security professionals must threat-model AI systems with the same rigor they apply to any other infrastructure.
+See: [MITRE ATLAS](https://atlas.mitre.org) | [OWASP Top 10 for LLMs](https://genai.owasp.org/llm-top-10/)
 
-Relevant frameworks: [MITRE ATLAS](https://atlas.mitre.org) (adversarial threat landscape for AI systems), [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/) (2025 edition).
+---
 
-### C — Context
+## C — Context
 
-**Core question:** Does this system's design match my operational environment?
+**Does this system's design match my operational environment?**
 
-What you're evaluating: deployment fit, data compatibility, workflow integration, team capacity, edge cases specific to your environment, and human-in-the-loop requirements. A model trained on one network does not necessarily generalize to yours. A tool designed for a 50-person SOC may not work for a team of 3. Context is where most AI deployments fail silently: the model works, just not here.
+| Evaluate | The Reality |
+|----------|-------------|
+| Deployment fit | Built for enterprise? You're a 3-person team. |
+| Data compatibility | Trained on cloud telemetry? You're hybrid. |
+| Team capacity | Can you actually act on the output volume? |
+| Edge cases | Your environment has quirks the vendor never saw |
 
-### E — Explainability
+*Context is where most AI deployments fail silently: the model works, just not here.*
 
-**Core question:** Can I understand and justify this system's decisions?
+---
 
-What you're evaluating: output transparency, audit trails, the ability to explain decisions to analysts, leadership, legal teams, and regulators. If an AI system quarantines a legitimate email, blocks a production connection, or flags an employee for investigation, someone has to explain why. If you can't, the system is a liability regardless of its accuracy.
+## E — Explainability
 
-### Agentic AI: Beyond the Five Dimensions
+**Can I understand and justify this system's decisions?**
 
-The five TRACE dimensions apply to any AI system. But AI agents — systems that take autonomous actions like writing files, calling APIs, or executing commands — create additional evaluation requirements that traditional AI doesn't.
+| Scenario | The Question |
+|----------|--------------|
+| AI quarantines an email | Why? Can the analyst see the reasoning? |
+| AI flags an employee | Can you explain this to HR and legal? |
+| AI misses an attack | Can you reconstruct what it saw? |
+| Audit time | Is there a trail? |
 
-When evaluating agents, TRACE still applies, but you need deeper treatment of forensic and operational concerns: action logging, attribution, session boundaries, permission scope, and rollback capabilities.
+*If you can't explain it, it's a liability regardless of accuracy.*
 
-See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for the full supplement.
+---
 
-## How to Use TRACE
+## Agentic AI
 
-TRACE scales to the situation. It is not a compliance checklist or a formal assessment methodology. It is a structured way of thinking that adapts to the decision in front of you.
+AI agents — systems that take autonomous actions — require deeper evaluation.
 
-**Quick evaluation (5 minutes).** An AI system generates an alert. Before you act on it, mentally run TRACE: Do I know what this model was trained on? Do I understand its error rate? Could an attacker have influenced the input? Does this fit my environment? Can I explain my action if asked? If any answer is "no" or "I don't know," that informs how much weight you give the output.
+The five dimensions still apply, but agents add:
+- **Action logging** — What did it do?
+- **Attribution** — AI action vs. human action?
+- **Permission scope** — What *could* it access?
+- **Rollback** — Can you undo it?
 
-**Product evaluation (hours to days).** Your organization is evaluating an AI-powered security tool. TRACE structures the evaluation: request training data documentation (T), ask for performance metrics including false positive/negative rates and drift monitoring (R), threat-model the AI components using ATLAS (A), assess fit for your specific environment and team (C), evaluate whether the tool's decisions are auditable and explainable (E).
+See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, logging requirements, and vendor questions.
 
-**Policy development.** Your GRC team is writing an AI acceptable use policy. TRACE provides the five categories of risk that the policy must address. Each dimension maps to policy requirements: data governance (T), performance monitoring and SLAs (R), security controls for AI systems (A), deployment approval criteria (C), and transparency and audit requirements (E).
+---
 
-**Incident investigation.** An AI system missed an attack, flagged innocent users, or produced unexpected output. TRACE becomes a diagnostic framework: Was the training data compromised or unrepresentative (T)? Did the model's reliability degrade (R)? Was the system subject to adversarial manipulation (A)? Was there a context mismatch between the model's design and the deployment (C)? Can you reconstruct what the system did and explain it to stakeholders (E)?
+## Apply TRACE
+
+| Situation | Time | Focus |
+|-----------|------|-------|
+| Acting on an AI alert | 5 min | R, C, E — Can I trust this output? |
+| Evaluating a vendor | Hours | All five — Structured assessment |
+| Writing AI policy | Days | All five — Map to requirements |
+| Investigating an AI failure | Varies | Diagnostic — Which dimension broke? |
+| Investigating adversary AI use | Varies | A, E — What happened? What's the evidence? |
+
+---
 
 ## What TRACE Is Not
 
-- Not a maturity model. There are no levels to achieve.
-- Not a certification framework. There is no audit.
-- Not a replacement for MITRE ATLAS, NIST AI RMF, or OWASP Top 10 for LLMs. Those are detailed, domain-specific resources. TRACE is the mental model that helps you know when to reach for them and what questions to ask when you get there.
-- Not a vendor evaluation scorecard. It does not produce a numerical score. It produces better questions.
+| | |
+|---|---|
+| Not a maturity model | No levels to achieve |
+| Not a certification | No audit |
+| Not a replacement for ATLAS/RMF/OWASP | TRACE tells you *when* to reach for those |
+| Not a scorecard | No numbers — better questions |
 
 ## Resources
 
