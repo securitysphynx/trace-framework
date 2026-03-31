@@ -110,7 +110,7 @@ Agent-specific threats:
 - **Privilege escalation:** Can the agent be tricked into requesting or using elevated permissions?
 - **Data exfiltration:** Can an attacker use the agent to extract sensitive information?
 
-Resources: [MITRE ATLAS](https://atlas.mitre.org), [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/)
+Resources: [MITRE ATLAS](https://atlas.mitre.org) (includes 14+ agent-specific techniques as of v5.4.0: context poisoning, tool invocation exfiltration, escape to host), [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/), [OWASP Top 10 for Agentic Applications (2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — dedicated standard for agent-specific risks
 
 ### C — Context (for Agents)
 
@@ -129,7 +129,9 @@ Beyond decision explainability:
 
 ## Questions to Ask Vendors
 
-When evaluating agent-based products, add these to your vendor assessment:
+When evaluating agent-based products, add these to your vendor assessment.
+
+*Note: The agent framework landscape is consolidating rapidly. Microsoft AutoGen and Semantic Kernel entered maintenance mode in October 2025, replaced by Microsoft Agent Framework. OpenAI's Assistants API is planned for sunset in 2026. Ask vendors about their underlying framework and its roadmap — you may inherit deprecation risk.*
 
 1. Where are action logs stored? Can we forward them to our SIEM?
 2. What's logged — just outputs, or all intermediate actions and reasoning?
@@ -149,13 +151,15 @@ Warning signs that an agent deployment may not support investigation:
 - [ ] No centralized logging — logs live only on agent instances
 - [ ] Agent runs under shared/generic service account
 - [ ] No retention policy or vendor-controlled retention
-- [ ] Proprietary log format with no export
+- [ ] Proprietary log format with no export (look for OCSF, OTel support)
 - [ ] Only final outputs logged, not intermediate actions
 - [ ] Agent has write access to its own log location
 - [ ] No session boundaries or correlation IDs
 - [ ] Broad standing permissions without audit
 - [ ] No reasoning traces preserved
 - [ ] Irreversible actions without approval gates
+- [ ] Enterprise logging exists for some products but not the one you're deploying (the "Cowork gap")
+- [ ] Underlying framework is deprecated or in maintenance mode
 
 ## Policy Enforcement: From Optional to Mandatory
 
@@ -207,14 +211,18 @@ For AI agents, the question is: what can existing OS-level instrumentation actua
 | WFP (Windows Filtering Platform) | Network connections | API traffic, lateral connections |
 | File system filter drivers | All file operations | EDR-level file access logging |
 
-**macOS (Endpoint Security, OpenBSM):**
+*Caveat: Sophisticated attackers increasingly use driver-based techniques (embedding vulnerable drivers to unregister kernel callbacks, kill EDR processes) to bypass these telemetry sources. The enforcement layer itself is an attack surface.*
+
+**macOS (Endpoint Security Framework):**
 
 | Hook/Mechanism | What It Captures | AI Agent Relevance |
 |----------------|------------------|-------------------|
-| Endpoint Security framework | Process, file, network events | Kernel-level visibility, similar to eBPF |
-| OpenBSM / auditd | Syscall-level audit trail | Traditional audit logging |
+| Endpoint Security framework (ESF) | Process, file, network events | Kernel-level visibility, primary telemetry source |
 | Network Extension | Network filter capability | Inspecting agent network traffic |
 | TCC database | Permission grants | When agent was granted file/camera/mic access |
+| Unified Logging (`os_log`) | System and app logs | Protected storage, tamper-resistant |
+
+*Note: OpenBSM is deprecated as of macOS Big Sur and will be removed in a future version. ESF is now the authoritative mechanism for security telemetry on macOS.*
 
 **The gap: OS hooks see actions, not reasoning**
 
@@ -252,6 +260,15 @@ Current agent architectures have a fundamental problem: **the agent operator con
 
 If the person running the agent can also configure it, they can disable logging. This is the pre-Group Policy era for AI agents.
 
+### A Cautionary Example: Enterprise vs. Consumer Gaps
+
+Even leading vendors have observability gaps between their enterprise and consumer offerings. As of early 2026:
+
+- **Claude Code** (Anthropic's agentic coding tool) offers a Compliance API for enterprise customers with real-time access to usage data and conversation logs, plus OpenTelemetry export.
+- **Claude Cowork** (multi-user collaboration features) is explicitly *excluded* from Audit Logs, Compliance API, and Data Exports.
+
+This pattern repeats across the industry. The lesson: don't assume that because a vendor has enterprise logging for one product, all their products have equivalent observability. Ask specifically about each deployment surface.
+
 ### What Enterprises Can Do Today
 
 Until the industry matures, defense-in-depth:
@@ -284,32 +301,32 @@ Until the industry matures, defense-in-depth:
 
 ### What the Industry Needs to Build
 
-For AI agents to reach enterprise maturity, we need:
+For AI agents to reach enterprise maturity, we need the following. Some are now emerging; others remain gaps:
 
-**Centralized policy enforcement**
+**Centralized policy enforcement** — *Still needed*
 - The equivalent of Group Policy for AI agents
 - Enterprise IT defines: what tools are allowed, what must be logged, what requires approval
 - Policy is enforced at a layer the agent can't bypass
 
-**Attested agent runtimes**
+**Attested agent runtimes** — *Still needed*
 - Signed agent configurations that can be verified
 - The agent can prove it hasn't been modified to bypass logging
 - Similar to Secure Boot — the runtime attests its integrity
 
-**Standardized audit event schemas**
-- Common format for agent action logs (like CEF/LEEF for security events)
-- Enables cross-vendor correlation and SIEM integration
-- Industry bodies (OWASP, MITRE, NIST) should drive this
+**Standardized audit event schemas** — *Emerging*
+- OCSF v1.8.0 `ai_operation` profile provides native AI telemetry schema
+- OpenTelemetry GenAI Semantic Conventions enable cross-framework observability
+- OWASP Agentic Top 10 establishes common vocabulary for agent risks
 
-**Provider-side audit feeds**
-- API providers offer enterprise audit log access as a standard feature
+**Provider-side audit feeds** — *Partially available*
+- Anthropic Compliance API (Claude Code Enterprise), OpenAI Admin/Audit Logs API (Enterprise)
+- Coverage varies by product — consumer and collaboration features often excluded
 - Logs include: prompts, responses, tool calls, token usage, session metadata
-- Customer-owned, exportable, with configurable retention
 
-**Constrained execution modes**
-- "High-security mode" that restricts agent capabilities
-- Analogous to PowerShell Constrained Language Mode
-- Fewer tools available, mandatory approval gates, enhanced logging
+**Constrained execution modes** — *Emerging*
+- Some frameworks support approval gates and tool restrictions
+- Microsoft Agent Framework includes DevUI with Entra integration
+- "High-security mode" analogous to PowerShell Constrained Language Mode remains rare
 
 ### Questions to Ask About Enforcement
 
@@ -333,6 +350,24 @@ The end state we need:
 - **Attestation is possible** (agents can prove their logging configuration hasn't been bypassed)
 
 Until we get there, treat agent logging as you would any high-privilege system: trust but verify, defense in depth, and assume the logs you have may be incomplete.
+
+## Emerging Standards (2025-2026)
+
+The industry is beginning to address the agent observability gap:
+
+**OCSF v1.8.0 (March 2026)** added a native `ai_operation` profile with supporting objects (`ai_model`, `message_context`). This enables standardized AI telemetry across vendors without format translation — a prerequisite for autonomous threat hunting and intelligent response orchestration.
+
+**OpenTelemetry GenAI Semantic Conventions** define standard attributes for traces, metrics, and events across agentic systems. Technology-specific conventions exist for Anthropic, OpenAI, Azure AI, and AWS Bedrock. Adoption is growing: Datadog LLM Observability natively supports these conventions, and frameworks like LangSmith, CrewAI, and Microsoft Agent Framework include native OpenTelemetry integration.
+
+**OWASP Top 10 for Agentic Applications (2026)** is a dedicated standard (separate from the LLM Top 10) with 100+ expert contributors. Key concepts include Agent Goal Hijack, Least Agency Principle, and explicit coverage of real identities, data access, and tool use in agentic contexts.
+
+**MITRE ATLAS v5.1-5.4 (2025-2026)** added 14+ agent-specific attack techniques in collaboration with Zenity Labs, including:
+- AI Agent Context Poisoning — manipulating agent LLM context for persistent influence
+- Exfiltration via AI Agent Tool Invocation — using "write" tools to leak data
+- Publish Poisoned AI Agent Tool — supply chain attacks on agent tooling
+- Escape to Host — breaking out of agent sandboxes
+
+These standards are moving the industry from Level 1 (optional logging) toward enforceable observability.
 
 ## The Future State: What Good Agent Logging Looks Like
 
@@ -484,7 +519,8 @@ Logs must be verifiable:
 **Export formats** — Logs should be exportable in:
 - JSON Lines (for processing)
 - CEF/LEEF (for SIEM integration)
-- OCSF (Open Cybersecurity Schema Framework, emerging standard)
+- OCSF v1.8.0+ (Open Cybersecurity Schema Framework, now includes native `ai_operation` profile)
+- OpenTelemetry (GenAI Semantic Conventions for cross-framework interoperability)
 - Parquet (for long-term archival and analytics)
 
 **Ownership** — Enterprise customers own their logs. Vendors must provide:
@@ -522,8 +558,19 @@ The core TRACE framework helps you evaluate any AI system. This supplement adds 
 - **Can I prove it?** (immutability, attribution)
 - **Can I undo it?** (rollback)
 
-Until the industry develops better standards for agent observability, security teams should treat agent forensics with the same rigor they apply to any other high-privilege system component.
+Standards are emerging (OCSF ai_operation, OpenTelemetry GenAI, OWASP Agentic Top 10), but adoption is uneven. Security teams should treat agent forensics with the same rigor they apply to any other high-privilege system component — and verify that the specific products they deploy actually implement these standards.
 
 ---
 
-*This guide is part of the TRACE framework by [Melissa Bischoping](https://www.linkedin.com/in/mbischoping/). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).*
+## References
+
+- [MITRE ATLAS](https://atlas.mitre.org) — Adversarial Threat Landscape for AI Systems (v5.4.0+)
+- [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/) — 2025 edition
+- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — 2026 edition
+- [OCSF](https://schema.ocsf.io/) — Open Cybersecurity Schema Framework (v1.8.0+ includes ai_operation profile)
+- [OpenTelemetry GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) — Standard observability for AI systems
+- [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework) — AI Risk Management Framework (includes Generative AI Profile)
+
+---
+
+*This guide is part of the TRACE framework by [Melissa Bischoping](https://www.linkedin.com/in/mbischoping/). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Last updated: March 2026.*

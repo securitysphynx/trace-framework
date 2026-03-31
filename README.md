@@ -79,12 +79,21 @@ TRACE scales to the situation. It is not a compliance checklist or a formal asse
 - Not a replacement for MITRE ATLAS, NIST AI RMF, or OWASP Top 10 for LLMs. Those are detailed, domain-specific resources. TRACE is the mental model that helps you know when to reach for them and what questions to ask when you get there.
 - Not a vendor evaluation scorecard. It does not produce a numerical score. It produces better questions.
 
+## Resources
+
+| Resource | Purpose |
+|----------|---------|
+| [Quick Reference Card](docs/TRACE-quick-reference.md) | One-page TRACE summary |
+| [Agentic AI Supplement](guides/TRACE-agentic-ai.md) | Extended evaluation guidance for AI agents |
+| [Skills for AI Assistants](skills/) | Prompts to apply TRACE with Claude, Cursor, and other AI tools |
+
 ## Project Roadmap
 
 - [x] Core framework definition (five dimensions, use cases)
-- [x] TRACE Quick Reference Card ([docs/TRACE-quick-reference.md](docs/TRACE-quick-reference.md))
-- [ ] Use-case guides with worked examples for SOC, IR, GRC, and procurement
-- [ ] Mapping to MITRE ATLAS tactics and NIST AI RMF functions
+- [x] TRACE Quick Reference Card
+- [x] Agentic AI supplement (forensics, logging, policy enforcement)
+- [x] AI assistant skills for practical application
+- [ ] Use-case guides with worked examples (SOC, IR, GRC)
 - [ ] Practitioner field-testing and iteration
 
 ## Contributing
