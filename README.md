@@ -8,6 +8,25 @@ A framework for security professionals who don't build models but are increasing
 
 ---
 
+## Why This Framework Exists
+
+AI behavioral controls are not security controls.
+
+Every "rule" given to an AI system — through training, alignment, or system prompts — is a *probabilistic norm*, not a hard interlock. There is no kernel-level enforcement preventing a model from violating its instructions. Instructions shape the probability distribution of model output; they don't gate it. Compliance with stated behavior sits on a gradient:
+
+| Layer | Enforcement | Example |
+|---|---|---|
+| Trained-in values | Strongest. Baked into weights. | Refusal of severe harms. |
+| Constitutional / RLHF behaviors | Strong. Survives most contexts. | Honesty, source-attribution, uncertainty acknowledgment. |
+| System prompt instructions | Moderate. Reliable in most cases, breakable adversarially. | "Never save these things to memory." "Don't guess URLs." |
+| Style preferences | Weak. Trivially overridable. | "No emojis." "Tight responses." |
+
+*If your defense relies on the model agreeing to follow a rule, you have not built a security control. You have built a strong suggestion. Your actual security boundary lives elsewhere.*
+
+TRACE exists because *somewhere else* needs to be defined, evaluated, and defensible. The five dimensions are the questions that survive when the model's compliance does not.
+
+---
+
 ## The Five Dimensions
 
 | | Dimension | Core Question |
@@ -102,7 +121,7 @@ The five dimensions still apply, but agents add:
 - **Permission scope** — What *could* it access?
 - **Rollback** — Can you undo it?
 
-See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, logging requirements, and vendor questions.
+See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, logging requirements, and vendor questions, and **[TRACE for Agent Runtime Monitoring](guides/TRACE-agent-runtime-monitoring.md)** for detection-side controls and the social-engineering-at-the-endpoint threat model.
 
 ---
 
@@ -133,7 +152,8 @@ See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, loggin
 |----------|---------|
 | [Quick Reference Card](docs/TRACE-quick-reference.md) | One-page TRACE summary |
 | [Visual Guide](docs/TRACE-visual-guide.md) | Pyramid diagram for teaching and workshops |
-| [Agentic AI Supplement](guides/TRACE-agentic-ai.md) | Extended evaluation guidance for AI agents |
+| [Agentic AI Supplement](guides/TRACE-agentic-ai.md) | Extended evaluation guidance for AI agents — forensics, logging, policy enforcement |
+| [Agent Runtime Monitoring](guides/TRACE-agent-runtime-monitoring.md) | Detection-side controls — social engineering threat model, model-as-judge, behavioral baselining |
 | [Skills for AI Assistants](skills/) | Prompts to apply TRACE with Claude, Cursor, and other AI tools |
 
 ## Project Roadmap
@@ -141,6 +161,7 @@ See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, loggin
 - [x] Core framework definition (five dimensions, use cases)
 - [x] TRACE Quick Reference Card
 - [x] Agentic AI supplement (forensics, logging, policy enforcement)
+- [x] Agent runtime monitoring supplement (detection, social engineering threat model)
 - [x] AI assistant skills for practical application
 - [ ] Use-case guides with worked examples (SOC, IR, GRC)
 - [ ] Practitioner field-testing and iteration

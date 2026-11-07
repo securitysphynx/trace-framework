@@ -13,6 +13,7 @@ TRACE skills are system prompts and structured workflows that help security prac
 | [trace-evaluate](trace-evaluate.md) | Structured AI system evaluation | Evaluating a new AI tool, vendor product, or deployment |
 | [trace-investigate](trace-investigate.md) | Incident analysis through TRACE lens | An AI system failed, missed something, or behaved unexpectedly |
 | [trace-vendor](trace-vendor.md) | Procurement and vendor assessment | Writing RFP requirements or evaluating vendor claims |
+| [trace-monitor](trace-monitor.md) | Runtime monitoring assessment for agents | Auditing an agent deployment for detection gaps before an incident |
 
 ## How to Use
 
