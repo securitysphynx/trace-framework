@@ -244,10 +244,15 @@ Investigate:
 - **AI as C2:** Was an AI system used as a command-and-control channel? (SesameOp-style)
 - **Supply chain:** Did compromised AI tools or plugins enable access?
 
-MITRE ATLAS techniques to check:
+MITRE ATLAS techniques to check (ATLAS releases monthly; confirm IDs against the current matrix):
 - AI Agent Context Poisoning (persistent manipulation of agent context)
-- Exfiltration via AI Agent Tool Invocation (using "write" tools to leak data)
+- AI Agent Tool Invocation (AML.T0053) — using the agent's "write" tools to leak data or act
+- AI Agent Tool Poisoning (AML.T0110) / Publish Poisoned AI Agent Tool (AML.T0104) — compromised tools or MCP servers
+- Deploy AI Agent (AML.T0103) / Modify AI Agent Configuration (AML.T0081) — the adversary stood up or reconfigured an agent
 - LLM Prompt Injection for code execution or data access
+- Autonomous Reconnaissance, Attack-Path Adaptation, Attack Orchestration (AML.T0116, T0117, T0124) — the adversary's own agents ran the intrusion
+
+OWASP Agentic Top 10 mapping: ASI01 Goal Hijack, ASI02 Tool Misuse, ASI03 Identity and Privilege Abuse, ASI04 Agentic Supply Chain, ASI06 Memory and Context Poisoning. Cite the ASI ID in the incident report; it is the vocabulary vendors and auditors now share.
 
 Questions to answer:
 - [ ] Was prompt injection used?

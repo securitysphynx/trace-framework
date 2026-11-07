@@ -110,7 +110,7 @@ Agent-specific threats:
 - **Privilege escalation:** Can the agent be tricked into requesting or using elevated permissions?
 - **Data exfiltration:** Can an attacker use the agent to extract sensitive information?
 
-Resources: [MITRE ATLAS](https://atlas.mitre.org) (includes 14+ agent-specific techniques as of v5.4.0: context poisoning, tool invocation exfiltration, escape to host), [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/), [OWASP Top 10 for Agentic Applications (2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — dedicated standard for agent-specific risks
+Resources: [MITRE ATLAS](https://atlas.mitre.org) (monthly content releases since 2026.05; 20+ agent-specific techniques and seven agent-authority mitigations, M0026–M0032, as of release 2026.10), [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/) (2025 edition), [OWASP Top 10 for Agentic Applications (2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — dedicated standard for agent-specific risks, ASI01–ASI10. The five agent-specific threats above map to ASI01 (Goal Hijack), ASI02 (Tool Misuse), ASI03 (Identity and Privilege Abuse), ASI06 (Memory and Context Poisoning) and ASI05 (Unexpected Code Execution).
 
 ### C — Context (for Agents)
 
@@ -353,21 +353,26 @@ Until we get there, treat agent logging as you would any high-privilege system: 
 
 ## Emerging Standards (2025-2026)
 
-The industry is beginning to address the agent observability gap:
+The industry is beginning to address the agent observability gap. Status as of November 2026:
 
-**OCSF v1.8.0 (March 2026)** added a native `ai_operation` profile with supporting objects (`ai_model`, `message_context`). This enables standardized AI telemetry across vendors without format translation — a prerequisite for autonomous threat hunting and intelligent response orchestration.
+**OCSF v1.8.0 (March 2026)** added a native `ai_operation` profile with supporting objects (`ai_model`, `message_context`). **OCSF v1.9.0 (August 2026)** extended it with an `ai_agent` object, a `hosted_ai_agent_list` attribute, `prompt_text` and `response_text` attributes, and a `delegation` attribute on `ai_operation` that links a data-plane action to the authority it was performed under. That delegation field is the schema-level answer to the attribution question in this guide: *was this the agent acting on its own standing permissions, or on behalf of a named user?* Together these enable standardized AI telemetry across vendors without format translation. Note that `ai_agent` is an object, not a profile; there is still no standalone agent profile.
 
-**OpenTelemetry GenAI Semantic Conventions** define standard attributes for traces, metrics, and events across agentic systems. Technology-specific conventions exist for Anthropic, OpenAI, Azure AI, and AWS Bedrock. Adoption is growing: Datadog LLM Observability natively supports these conventions, and frameworks like LangSmith, CrewAI, and Microsoft Agent Framework include native OpenTelemetry integration.
+**OpenTelemetry GenAI Semantic Conventions** define standard attributes for traces, metrics, and events across agentic systems, including agent spans and MCP tool calls, with provider-specific conventions for the major model APIs. In 2026 they moved out of the main `semantic-conventions` repository into a dedicated `semantic-conventions-genai` repository, and as of this writing none of the GenAI attributes, spans, metrics or events is marked Stable. Attribute names have been renamed between releases (`gen_ai.system` became `gen_ai.provider.name`). Treat them as the direction of travel, not a settled contract: anything you build that parses these fields needs to tolerate renames. Adoption is growing regardless; Datadog LLM Observability, LangSmith, CrewAI and Microsoft Agent Framework ship native OpenTelemetry integration.
 
-**OWASP Top 10 for Agentic Applications (2026)** is a dedicated standard (separate from the LLM Top 10) with 100+ expert contributors. Key concepts include Agent Goal Hijack, Least Agency Principle, and explicit coverage of real identities, data access, and tool use in agentic contexts.
+**OWASP Top 10 for Agentic Applications (2026)**, released December 9, 2025, is a dedicated standard (separate from the LLM Top 10) with 100+ expert contributors. The ten risks: ASI01 Agent Goal Hijack, ASI02 Tool Misuse and Exploitation, ASI03 Identity and Privilege Abuse, ASI04 Agentic Supply Chain Vulnerabilities, ASI05 Unexpected Code Execution, ASI06 Memory and Context Poisoning, ASI07 Insecure Inter-Agent Communication, ASI08 Cascading Failures, ASI09 Human-Agent Trust Exploitation, ASI10 Rogue Agents. Use the IDs in vendor requirements; they give both sides a shared vocabulary.
 
-**MITRE ATLAS v5.1-5.4 (2025-2026)** added 14+ agent-specific attack techniques in collaboration with Zenity Labs, including:
-- AI Agent Context Poisoning — manipulating agent LLM context for persistent influence
-- Exfiltration via AI Agent Tool Invocation — using "write" tools to leak data
-- Publish Poisoned AI Agent Tool — supply chain attacks on agent tooling
-- Escape to Host — breaking out of agent sandboxes
+**MITRE ATLAS** moved to monthly content releases in 2026 (versioned `YYYY.MM`, separate from the data-format version) and most of what it adds covers agents. Agent-specific techniques now include:
+- AI Agent Tool Poisoning (AML.T0110) and Publish Poisoned AI Agent Tool (AML.T0104) — supply chain attacks on agent tooling
+- AI Agent Tool Invocation (AML.T0053) — using the agent's own tools, including "write" tools that leak data
+- Deploy AI Agent (AML.T0103) and Modify AI Agent Configuration (AML.T0081) — the adversary stands up or reconfigures an agent in your environment
+- Discover AI Agent Runtime Capabilities (AML.T0133) — reconnaissance of what an agent can do before abusing it
+- Autonomous Reconnaissance, Autonomous Attack-Path Adaptation, Autonomous AI Agent Communication and Autonomous Attack Orchestration (AML.T0116, T0117, T0118, T0124) — the adversary's agents, not yours
 
-These standards are moving the industry from Level 1 (optional logging) toward enforceable observability.
+ATLAS also now carries agent-authority **mitigations**, which read like a checklist for the permission-scope and rollback sections of this guide: M0026 Manage Service AI Agent Access, M0027 Manage User-Delegated AI Agent Access, M0028 Enforce Access Controls for AI Agent Tools, M0029 Human In-the-Loop for AI Agent Actions, M0030 Restrict AI Agent Tool Invocation on Untrusted Data, M0031 Memory Hardening, M0032 Segmentation of AI Agent Components. If a vendor cannot tell you which of these their product implements, that is your answer.
+
+**NIST Cyber AI Profile (NIST IR 8596)**, initial preliminary draft December 16, 2025 (comment period closed January 30, 2026), maps AI-related cybersecurity outcomes onto the Cybersecurity Framework 2.0 across three focus areas: securing AI system components, AI-enabled cyber defense, and thwarting AI-enabled attacks. It is the first NIST document that puts least privilege for AI agents inside the CSF structure your GRC team already reports against. An initial public draft is expected to follow; check the current status before citing it in policy.
+
+These standards are moving the industry from Level 1 (optional logging) toward enforceable observability. They are also moving fast: every version number in this section was current in November 2026 and will not be for long.
 
 ## The Future State: What Good Agent Logging Looks Like
 
@@ -564,13 +569,14 @@ Standards are emerging (OCSF ai_operation, OpenTelemetry GenAI, OWASP Agentic To
 
 ## References
 
-- [MITRE ATLAS](https://atlas.mitre.org) — Adversarial Threat Landscape for AI Systems (v5.4.0+)
+- [MITRE ATLAS](https://atlas.mitre.org) — Adversarial Threat Landscape for AI Systems (monthly releases; 2026.10 current at time of writing; [release notes](https://github.com/mitre-atlas/atlas-data/releases))
 - [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/) — 2025 edition
-- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — 2026 edition
-- [OCSF](https://schema.ocsf.io/) — Open Cybersecurity Schema Framework (v1.8.0+ includes ai_operation profile)
-- [OpenTelemetry GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) — Standard observability for AI systems
+- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — 2026 edition, released December 9, 2025 (ASI01–ASI10)
+- [OCSF](https://schema.ocsf.io/) — Open Cybersecurity Schema Framework (v1.8.0 added the `ai_operation` profile; v1.9.0 added `ai_agent` and `delegation`)
+- [OpenTelemetry GenAI Semantic Conventions](https://github.com/open-telemetry/semantic-conventions-genai) — dedicated repository; not yet marked Stable
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework) — AI Risk Management Framework (includes Generative AI Profile)
+- [NIST IR 8596, Cyber AI Profile](https://csrc.nist.gov/pubs/ir/8596/iprd) — Cybersecurity Framework Profile for AI, initial preliminary draft (December 2025)
 
 ---
 
-*This guide is part of the TRACE framework by [Melissa Bischoping](https://www.linkedin.com/in/mbischoping/). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Last updated: March 2026.*
+*This guide is part of the TRACE framework by [Melissa Bischoping](https://www.linkedin.com/in/mbischoping/). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Last updated: November 2026.*

@@ -172,7 +172,7 @@ TRACE is a community project. If you're a security practitioner applying TRACE i
 
 ## Author
 
-[Melissa Bischoping](https://www.linkedin.com/in/mbischoping/) — Security research leader, speaker, and SANS Technology Institute Board member. TRACE grew out of work on AI literacy for cybersecurity professionals, driven by the observation that our industry is adopting AI faster than it's developing the judgment to evaluate it.
+[Melissa Bischoping](https://www.linkedin.com/in/mbischoping/) — Director, Secure Operations & Enablement at Siemens; security researcher, speaker, and SANS Technology Institute Board member. TRACE grew out of work on AI literacy for cybersecurity professionals, driven by the observation that our industry is adopting AI faster than it's developing the judgment to evaluate it.
 
 ## License
 

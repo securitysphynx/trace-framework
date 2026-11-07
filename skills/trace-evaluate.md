@@ -86,7 +86,7 @@ Ask:
 - What supply chain risks exist? (model provenance, dependencies, plugins)
 - Can an adversary influence the training data or retrieval corpus?
 - Has the vendor conducted adversarial testing? Red teaming?
-- Reference: Does this map to any MITRE ATLAS techniques or OWASP LLM Top 10 risks?
+- Reference: Does this map to any MITRE ATLAS techniques, OWASP LLM Top 10 risks, or (for agents) OWASP Agentic Top 10 risks ASI01–ASI10?
 
 Document:
 - [ ] Threat model: exists / partial / none

@@ -28,7 +28,7 @@ How could an adversary manipulate this? What is the AI-specific threat model?
 
 *Ask:* Can an attacker craft inputs to evade detection? Can they poison the training pipeline? If this is an LLM, is it vulnerable to prompt injection? What supply chain risks exist in the model or its dependencies?
 
-*Reference:* MITRE ATLAS (atlas.mitre.org), OWASP Top 10 for LLM Applications (genai.owasp.org)
+*Reference:* MITRE ATLAS (atlas.mitre.org), OWASP Top 10 for LLM Applications and OWASP Top 10 for Agentic Applications (genai.owasp.org)
 
 ---
 
@@ -58,6 +58,7 @@ Can I understand and justify this system's decisions to my team, my leadership, 
 | Investigating an AI system failure | Forensic diagnostic | T, R, A first; then C, E |
 | Triaging a new AI claim or headline | Quick gut check | T, R |
 | Evaluating an AI agent deployment | Structured evaluation | All five + [Agent Supplement](../guides/TRACE-agentic-ai.md) |
+| Auditing an agent's monitoring before an incident | Structured evaluation | R, A, E + [Runtime Monitoring](../guides/TRACE-agent-runtime-monitoring.md) |
 
 ---
 

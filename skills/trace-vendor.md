@@ -147,7 +147,8 @@ Generate requirements language for procurement documents.
 - REQ-A-001: Vendor shall document AI-specific threat modeling, including evasion, poisoning, and extraction risks.
 - REQ-A-002: Vendor shall describe adversarial testing or red team activities conducted on AI components.
 - REQ-A-003: For LLM-based systems, vendor shall document prompt injection mitigations.
-- REQ-A-004: [Additional requirements based on context]
+- REQ-A-004: For agentic systems, vendor shall state which OWASP Agentic Top 10 risks (ASI01–ASI10) and which MITRE ATLAS agent mitigations (M0026–M0032) the product addresses, and how.
+- REQ-A-005: [Additional requirements based on context]
 
 ### Deployment and Context Fit (TRACE-C)
 
@@ -159,7 +160,7 @@ Generate requirements language for procurement documents.
 ### Transparency and Explainability (TRACE-E)
 
 - REQ-E-001: System shall provide explanations for flagged items sufficient for analyst triage.
-- REQ-E-002: System shall support log export in standard formats (CEF, JSON, OCSF).
+- REQ-E-002: System shall support log export in standard formats (CEF, JSON, OCSF `ai_operation` profile with the `delegation` attribute populated for agent actions).
 - REQ-E-003: Vendor shall document audit trail retention and customer access.
 - REQ-E-004: For agentic systems, vendor shall log all actions with tamper-evident storage.
 - REQ-E-005: [Additional requirements based on context]
