@@ -54,7 +54,7 @@ Defenses sort cleanly by where in the agent pipeline they intervene. A working m
 
 **Provenance tagging.** Each chunk of input is tagged by source: user-typed, tool A response, tool B response, retrieved document, memory recall. The tags travel with the content through the model and into the audit log. After-the-fact question: "what content from what source preceded this anomalous action?"
 
-**Injection-detection classifiers.** Smaller, separate models scan tool and retrieved content for instruction-like patterns. Pattern-matching catches the trivial attacks ("ignore previous instructions"); embedding-based classification catches medium-effort variants. Sophisticated, content-aware injection still gets through. Vendors include Lakera Guard, Microsoft Prompt Shield, NVIDIA NeMo Guardrails, Protect AI.
+**Injection-detection classifiers.** Smaller, separate models scan tool and retrieved content for instruction-like patterns. Pattern-matching catches the trivial attacks ("ignore previous instructions"); embedding-based classification catches medium-effort variants. Sophisticated, content-aware injection still gets through. Vendors in this space as of April 2026 included Lakera Guard, Microsoft Prompt Shield, NVIDIA NeMo Guardrails and Protect AI; the list churns, the limitation does not.
 
 **Spotlighting / data-marking.** Untrusted content is wrapped with deliberate boundaries the model is trained to respect. Improves the model's ability to distinguish *data being read* from *instruction being received*. Anthropic and others have published technique variants.
 
@@ -131,7 +131,7 @@ Detection capability today sorts into three maturity layers:
 
 The honest position: most production agent deployments today operate with *only the action-level layer*. Sophisticated deployments add behavioral-trace inference. Decision-level monitoring is a research frontier.
 
-The strategic gap is the middle layer. Action-level monitoring is mature. Decision-level monitoring is research-grade. Behavioral-trace monitoring — using the agent's I/O history plus model-as-judge analysis to reconstruct probable decision pathways and flag suspicious ones — is unclaimed territory in the vendor landscape, and it's the layer that will define enterprise-grade agent security over the next 24 months.
+The strategic gap is the middle layer. Action-level monitoring is mature. Decision-level monitoring is research-grade. Behavioral-trace monitoring — using the agent's I/O history plus model-as-judge analysis to reconstruct probable decision pathways and flag suspicious ones — is unclaimed territory in the vendor landscape, and it's the layer that will define enterprise-grade agent security over the next 24 months (prediction dated April 2026; score it in April 2028).
 
 ---
 
@@ -197,7 +197,7 @@ A few honest limits worth stating explicitly:
 
 **Model-as-judge is persuadable.** Adding a second model raises attack cost but does not eliminate the threat. Sophisticated indirect injection can target the judge as well as the working agent. The defense compounds; it does not multiply.
 
-**Standardized agent telemetry does not yet exist at scale.** Until there is a *Sysmon-for-agents* — a universal event schema for tool-call-attempted, input-classified, output-filtered, and the rest — detection ecosystems will fragment along vendor lines. This is the field-shaping problem of the next 24 months.
+**Standardized agent telemetry does not yet exist at scale.** Until there is a *Sysmon-for-agents* — a universal event schema for tool-call-attempted, input-classified, output-filtered, and the rest — detection ecosystems will fragment along vendor lines. This is the field-shaping problem of the next 24 months (from April 2026). Candidates have since appeared: OCSF's `ai_operation` profile with the 1.9.0 `delegation` attribute, OpenTelemetry's GenAI conventions (still unstable), and OWASP's Agent Control Standard hooks. None is deployed at scale yet.
 
 ---
 

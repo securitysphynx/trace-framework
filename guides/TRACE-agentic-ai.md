@@ -82,6 +82,12 @@ If an agent took a bad action (whether through error, drift, or adversarial mani
 
 *Red flag:* Agent takes irreversible actions with no confirmation gates.
 
+**11. Delegation — On whose authority did each action run?**
+
+Attribution (question 2) tells you an agent acted. Delegation tells you *whose* authority it was exercising: its own standing service permissions, or a named user's permissions delegated for this task. The distinction decides who is accountable, what the blast radius was, and whether an action that looks legitimate for the user was legitimate for the agent. NIST's NCCoE agent identity and authorization work (concept paper, February 2026) frames this as four linked problems: identification, authorization, access delegation, and logging. OCSF 1.9.0 added a `delegation` attribute to the `ai_operation` profile for exactly this field. Each agent should carry its own workload identity (a SPIFFE ID or its own OAuth client), never a shared API key.
+
+*Red flag:* Agent authenticates with a shared API key or a human user's credentials, so logs cannot distinguish the agent's standing authority from a user's delegated authority.
+
 ## Agent-Specific TRACE Considerations
 
 The five TRACE dimensions still apply to agents, but with additional considerations:
@@ -92,6 +98,7 @@ Beyond the base model's training data, ask:
 - What tool-use examples shaped its behavior? How was it trained to use your specific tools?
 - If the agent uses retrieval (RAG), what's in the retrieval corpus? Can that corpus be poisoned?
 - Are there fine-tuning or RLHF steps specific to agentic behavior? What were the objectives?
+- **Tool provenance.** For every tool, MCP server, plugin or skill the agent executes: who published it, is it the vendor's own artifact or a lookalike, is the version pinned, and what changed in the last update? An agent is built on its tools as much as on its weights, and a poisoned tool compromises an agent whose model was never touched (see the [Postmark MCP case study](case-studies/cs-agent-postmark-mcp.md)). Treat agent tools as their own evaluation object with ordinary software supply chain controls: publisher verification, pinning, update review.
 
 ### R — Reliability (for Agents)
 
@@ -109,6 +116,8 @@ Agent-specific threats:
 - **Lateral movement:** If compromised, what can the agent access? Is it a pivot point?
 - **Privilege escalation:** Can the agent be tricked into requesting or using elevated permissions?
 - **Data exfiltration:** Can an attacker use the agent to extract sensitive information?
+
+Ask the architectural questions, not "is it vulnerable to injection" (it is). Does the design remove a leg of the lethal trifecta: access to private data, exposure to untrusted content, a channel to communicate out? Which design pattern constrains what injected text can *do*: Dual LLM (a privileged model acts, a quarantined model reads untrusted data), code-then-execute (CaMeL: extract control and data flow from the user's request, enforce policy in an interpreter), action-selector, plan-then-execute? Filters constrain what injected text can *say*; patterns constrain what it can *do*. See Debenedetti et al., "Defeating Prompt Injections by Design" (arXiv:2503.18813) and Beurer-Kellner et al., "Design Patterns for Securing LLM Agents against Prompt Injections" (arXiv:2506.08837).
 
 Resources: [MITRE ATLAS](https://atlas.mitre.org) (monthly content releases since 2026.05; 20+ agent-specific techniques and seven agent-authority mitigations, M0026–M0032, as of release 2026.10), [OWASP Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/) (2025 edition), [OWASP Top 10 for Agentic Applications (2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — dedicated standard for agent-specific risks, ASI01–ASI10. The five agent-specific threats above map to ASI01 (Goal Hijack), ASI02 (Tool Misuse), ASI03 (Identity and Privilege Abuse), ASI06 (Memory and Context Poisoning) and ASI05 (Unexpected Code Execution).
 
@@ -143,6 +152,7 @@ When evaluating agent-based products, add these to your vendor assessment.
 8. Can we audit what permissions the agent had at any point in time?
 9. What's the kill switch? How quickly can we halt agent activity?
 10. What irreversible actions can the agent take? What gates exist?
+11. Does each agent instance have its own workload identity (not a shared API key), and does every logged action record whose authority it ran under: the agent's own, or a named user's delegated permissions?
 
 ## Red Flags Checklist
 
@@ -158,7 +168,9 @@ Warning signs that an agent deployment may not support investigation:
 - [ ] Broad standing permissions without audit
 - [ ] No reasoning traces preserved
 - [ ] Irreversible actions without approval gates
-- [ ] Enterprise logging exists for some products but not the one you're deploying (the "Cowork gap")
+- [ ] Agent authenticates with a shared API key or a human's credentials; no per-agent workload identity, no delegation field in the logs
+- [ ] Agent tools and MCP servers installed from public registries without publisher verification or version pinning
+- [ ] Enterprise logging exists for some of the vendor's products but not the surface you're deploying
 - [ ] Underlying framework is deprecated or in maintenance mode
 
 ## Policy Enforcement: From Optional to Mandatory
@@ -169,13 +181,15 @@ Identifying forensic gaps is necessary but not sufficient. The harder question: 
 
 Every major operating system has evolved from "logging is possible" to "logging is enforceable." AI agents need to follow the same path.
 
-| Maturity Level | Windows | macOS | Linux | AI Agents (Current) |
-|----------------|---------|-------|-------|---------------------|
-| **1. Optional logging** | Early PowerShell | Basic syslog | Optional auditd | Most frameworks today |
-| **2. Centralized policy** | Group Policy, Intune | MDM profiles | Ansible/Puppet + auditd rules | Does not exist |
-| **3. Tamper-resistant storage** | Event Log (SYSTEM-owned) | Unified Logging (protected) | journald with sealing, remote syslog | Rare |
-| **4. Constrained execution** | Constrained Language Mode, WDAC | TCC, App Sandbox | SELinux/AppArmor, seccomp | Emerging |
-| **5. Signed/attested runtime** | Code signing, Secure Boot | Notarization, SIP | IMA, Secure Boot | Does not exist |
+| Maturity Level | Windows | macOS | Linux | AI Agents (April 2026) | AI Agents (November 2026) |
+|----------------|---------|-------|-------|------------------------|---------------------------|
+| **1. Optional logging** | Early PowerShell | Basic syslog | Optional auditd | Most frameworks | Still most frameworks |
+| **2. Centralized policy** | Group Policy, Intune | MDM profiles | Ansible/Puppet + auditd rules | Does not exist | Emerging: OWASP Agent Control Standard v0.1 (Sept 2026) defines a policy-authority ("Guardian") that evaluates an agent's pending actions over signed lifecycle hooks; ATLAS mitigations M0029 (human-in-the-loop) and M0030 (restrict tool invocation on untrusted data) name the controls |
+| **3. Tamper-resistant storage** | Event Log (SYSTEM-owned) | Unified Logging (protected) | journald with sealing, remote syslog | Rare | Rare; schema exists (OCSF `ai_operation`), enforcement does not |
+| **4. Constrained execution** | Constrained Language Mode, WDAC | TCC, App Sandbox | SELinux/AppArmor, seccomp | Emerging | Emerging; CaMeL-style code-then-execute designs demonstrate it is possible without changing the model |
+| **5. Signed/attested runtime** | Code signing, Secure Boot | Notarization, SIP | IMA, Secure Boot | Does not exist | Does not exist |
+
+*The April column is kept so the prediction can be scored. Re-grade it when you cite this table.*
 
 **Platform-specific enforcement mechanisms:**
 
@@ -262,12 +276,9 @@ If the person running the agent can also configure it, they can disable logging.
 
 ### A Cautionary Example: Enterprise vs. Consumer Gaps
 
-Even leading vendors have observability gaps between their enterprise and consumer offerings. As of early 2026:
+Even leading vendors have observability gaps between surfaces of the same product family. Observed in early 2026 with one major provider: the enterprise agentic coding tool offered a compliance API with real-time access to usage data and conversation logs plus OpenTelemetry export, while the same vendor's multi-user collaboration surface was explicitly excluded from audit logs, the compliance API, and data exports. Product details change quarterly; the pattern does not.
 
-- **Claude Code** (Anthropic's agentic coding tool) offers a Compliance API for enterprise customers with real-time access to usage data and conversation logs, plus OpenTelemetry export.
-- **Claude Cowork** (multi-user collaboration features) is explicitly *excluded* from Audit Logs, Compliance API, and Data Exports.
-
-This pattern repeats across the industry. The lesson: don't assume that because a vendor has enterprise logging for one product, all their products have equivalent observability. Ask specifically about each deployment surface.
+The lesson: don't assume that because a vendor has enterprise logging for one product, all their products have equivalent observability. Ask specifically about each deployment surface, in writing, and re-ask at renewal.
 
 ### What Enterprises Can Do Today
 
@@ -303,10 +314,11 @@ Until the industry matures, defense-in-depth:
 
 For AI agents to reach enterprise maturity, we need the following. Some are now emerging; others remain gaps:
 
-**Centralized policy enforcement** — *Still needed*
+**Centralized policy enforcement** — *Emerging (was "still needed" in April 2026)*
 - The equivalent of Group Policy for AI agents
 - Enterprise IT defines: what tools are allowed, what must be logged, what requires approval
 - Policy is enforced at a layer the agent can't bypass
+- OWASP's Agent Control Standard (v0.1, September 2026) is the first open wire specification for this: an observed agent exposes lifecycle hooks, a separate policy authority approves or denies pending actions, and every envelope is signed. Early, but it is the right shape.
 
 **Attested agent runtimes** — *Still needed*
 - Signed agent configurations that can be verified
@@ -325,7 +337,7 @@ For AI agents to reach enterprise maturity, we need the following. Some are now 
 
 **Constrained execution modes** — *Emerging*
 - Some frameworks support approval gates and tool restrictions
-- Microsoft Agent Framework includes DevUI with Entra integration
+- Code-then-execute designs (CaMeL) show that control-flow and data-flow policy can be enforced in an interpreter outside the model
 - "High-security mode" analogous to PowerShell Constrained Language Mode remains rare
 
 ### Questions to Ask About Enforcement
@@ -362,13 +374,13 @@ The industry is beginning to address the agent observability gap. Status as of N
 **OWASP Top 10 for Agentic Applications (2026)**, released December 9, 2025, is a dedicated standard (separate from the LLM Top 10) with 100+ expert contributors. The ten risks: ASI01 Agent Goal Hijack, ASI02 Tool Misuse and Exploitation, ASI03 Identity and Privilege Abuse, ASI04 Agentic Supply Chain Vulnerabilities, ASI05 Unexpected Code Execution, ASI06 Memory and Context Poisoning, ASI07 Insecure Inter-Agent Communication, ASI08 Cascading Failures, ASI09 Human-Agent Trust Exploitation, ASI10 Rogue Agents. Use the IDs in vendor requirements; they give both sides a shared vocabulary.
 
 **MITRE ATLAS** moved to monthly content releases in 2026 (versioned `YYYY.MM`, separate from the data-format version) and most of what it adds covers agents. Agent-specific techniques now include:
-- AI Agent Tool Poisoning (AML.T0110) and Publish Poisoned AI Agent Tool (AML.T0104) — supply chain attacks on agent tooling
+- AI Agent Tool Poisoning (AML.T0110) and Publish Poisoned AI Artifacts: AI Agent Tools (AML.T0115.002) — supply chain attacks on agent tooling (the earlier ID AML.T0104 was retired in 2026; a reminder that ATLAS IDs need a release anchor when cited)
 - AI Agent Tool Invocation (AML.T0053) — using the agent's own tools, including "write" tools that leak data
 - Deploy AI Agent (AML.T0103) and Modify AI Agent Configuration (AML.T0081) — the adversary stands up or reconfigures an agent in your environment
 - Discover AI Agent Runtime Capabilities (AML.T0133) — reconnaissance of what an agent can do before abusing it
 - Autonomous Reconnaissance, Autonomous Attack-Path Adaptation, Autonomous AI Agent Communication and Autonomous Attack Orchestration (AML.T0116, T0117, T0118, T0124) — the adversary's agents, not yours
 
-ATLAS also now carries agent-authority **mitigations**, which read like a checklist for the permission-scope and rollback sections of this guide: M0026 Manage Service AI Agent Access, M0027 Manage User-Delegated AI Agent Access, M0028 Enforce Access Controls for AI Agent Tools, M0029 Human In-the-Loop for AI Agent Actions, M0030 Restrict AI Agent Tool Invocation on Untrusted Data, M0031 Memory Hardening, M0032 Segmentation of AI Agent Components. If a vendor cannot tell you which of these their product implements, that is your answer.
+ATLAS also now carries agent-authority **mitigations**, which read like a checklist for the permission-scope and rollback sections of this guide: M0026 Manage AI Agent Service Access, M0027 Manage User-Delegated AI Agent Access, M0028 Enforce Access Controls for AI Agent Tools, M0029 Human In-the-Loop for AI Agent Actions, M0030 Restrict AI Agent Tool Invocation on Untrusted Data, M0031 Memory Hardening, M0032 Segmentation of AI Agent Components. If a vendor cannot tell you which of these their product implements, that is your answer.
 
 **NIST Cyber AI Profile (NIST IR 8596)**, initial preliminary draft December 16, 2025 (comment period closed January 30, 2026), maps AI-related cybersecurity outcomes onto the Cybersecurity Framework 2.0 across three focus areas: securing AI system components, AI-enabled cyber defense, and thwarting AI-enabled attacks. It is the first NIST document that puts least privilege for AI agents inside the CSF structure your GRC team already reports against. An initial public draft is expected to follow; check the current status before citing it in policy.
 
@@ -513,7 +525,7 @@ Logs must be verifiable:
 
 ### Retention and Export Standards
 
-**Minimum retention periods** by action type:
+**Minimum retention periods** by action type. These are suggested defaults, not regulatory citations; align them to the regimes that bind you (for example SEC Rule 17a-4 for broker-dealers, HIPAA's six-year documentation rule, national NIS2 transpositions, your own litigation-hold policy):
 | Action Type | Minimum Retention | Rationale |
 |-------------|-------------------|-----------|
 | Security-relevant (auth, permission changes) | 7 years | Compliance, legal discovery |
@@ -559,7 +571,8 @@ The core TRACE framework helps you evaluate any AI system. This supplement adds 
 
 - **What can it do?** (permission scope)
 - **What did it do?** (action logging, completeness)
-- **Why did it do it?** (reasoning traces)
+- **On whose authority?** (delegation: its own standing permissions, or a named user's)
+- **Why did it do it?** (reasoning traces, with the caveat that emitted reasoning is output, not a faithful record)
 - **Can I prove it?** (immutability, attribution)
 - **Can I undo it?** (rollback)
 
@@ -576,6 +589,11 @@ Standards are emerging (OCSF ai_operation, OpenTelemetry GenAI, OWASP Agentic To
 - [OpenTelemetry GenAI Semantic Conventions](https://github.com/open-telemetry/semantic-conventions-genai) — dedicated repository; not yet marked Stable
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework) — AI Risk Management Framework (includes Generative AI Profile)
 - [NIST IR 8596, Cyber AI Profile](https://csrc.nist.gov/pubs/ir/8596/iprd) — Cybersecurity Framework Profile for AI, initial preliminary draft (December 2025)
+- [NIST NCCoE, Software and AI Agent Identity and Authorization](https://pages.nist.gov/nccoe-ai-identity/) — concept paper (February 2026) and comment summary; identification, authorization, delegation, logging
+- [OWASP Agent Control Standard](https://github.com/genai-security-project/agent-control-standard) — runtime policy-enforcement wire specification, v0.1 (September 2026)
+- Debenedetti et al., [Defeating Prompt Injections by Design](https://arxiv.org/abs/2503.18813) (CaMeL), 2025
+- Beurer-Kellner et al., [Design Patterns for Securing LLM Agents against Prompt Injections](https://arxiv.org/abs/2506.08837), 2025
+- Chen et al., [Reasoning Models Don't Always Say What They Think](https://arxiv.org/abs/2505.05410), 2025; Korbak et al., [Chain of Thought Monitorability](https://arxiv.org/abs/2507.11473), 2025 — why reasoning traces are evidence of output, not of process
 
 ---
 

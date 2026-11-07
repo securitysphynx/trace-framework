@@ -52,6 +52,8 @@ TRACE dimensions build on each other like a pyramid. Start at the foundation, wo
 
 The pyramid makes gaps visible. When someone says "I don't know" at a lower level, it highlights that everything above is uncertain too.
 
+**The exception to teach alongside it:** for closed commercial models, the bottom layer is almost always "I don't know." That does not mean the evaluation stops. When a layer cannot be inspected, it is inferred from the layers above: strong Reliability evidence on your own data tells you something about the Training you cannot see. The pyramid shows where the uncertainty comes from; the substitution rule in the README ("When the Answer Is Unknown") shows how to work with it. Have participants state the inference explicitly: "we cannot see T, so we are relying on R measured here to stand in for it."
+
 ---
 
 *Part of the [TRACE Framework](../README.md) by [Melissa Bischoping](https://www.linkedin.com/in/mbischoping/). Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).*

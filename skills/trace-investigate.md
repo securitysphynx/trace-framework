@@ -247,7 +247,7 @@ Investigate:
 MITRE ATLAS techniques to check (ATLAS releases monthly; confirm IDs against the current matrix):
 - AI Agent Context Poisoning (persistent manipulation of agent context)
 - AI Agent Tool Invocation (AML.T0053) — using the agent's "write" tools to leak data or act
-- AI Agent Tool Poisoning (AML.T0110) / Publish Poisoned AI Agent Tool (AML.T0104) — compromised tools or MCP servers
+- AI Agent Tool Poisoning (AML.T0110) / Publish Poisoned AI Artifacts: AI Agent Tools (AML.T0115.002) / Supply Chain Compromise: AI Agent Tool (AML.T0010.005) — compromised tools or MCP servers
 - Deploy AI Agent (AML.T0103) / Modify AI Agent Configuration (AML.T0081) — the adversary stood up or reconfigured an agent
 - LLM Prompt Injection for code execution or data access
 - Autonomous Reconnaissance, Attack-Path Adaptation, Attack Orchestration (AML.T0116, T0117, T0124) — the adversary's own agents ran the intrusion

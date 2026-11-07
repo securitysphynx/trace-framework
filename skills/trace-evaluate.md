@@ -82,7 +82,7 @@ Document:
 
 Ask:
 - What AI-specific attack vectors apply? (evasion, poisoning, extraction, prompt injection)
-- If this is an LLM application, is it vulnerable to prompt injection (direct or indirect)?
+- If this is an LLM application, do not ask "is it vulnerable to prompt injection" (it is). Ask: does the design remove a leg of the lethal trifecta (private data, untrusted content, an outbound channel)? Which design pattern does it implement (Dual LLM, code-then-execute, action-selector, plan-then-execute), if any? Where does untrusted content enter the context, and is it tagged by source?
 - What supply chain risks exist? (model provenance, dependencies, plugins)
 - Can an adversary influence the training data or retrieval corpus?
 - Has the vendor conducted adversarial testing? Red teaming?
@@ -120,18 +120,20 @@ Document:
 
 *Core question: Can I understand and justify this system's decisions?*
 
-Ask:
-- When this system produces output, can analysts see why?
-- Can you reconstruct decisions for an incident report or audit?
-- Does this meet your regulatory transparency requirements?
-- If challenged by leadership, legal, or regulators, can you defend the decision?
-- For agents: Are actions logged? Can you trace what happened and why?
+Evaluate the three parts separately:
+- **Evidence:** Can you reconstruct what the system saw and did, in order, from logs and artifacts? Does the trail survive the agent's own access?
+- **Explanation:** Can analysts see why the model produced the output? For LLMs, treat emitted reasoning as output, not as a faithful account; do not build the case on it.
+- **Justification:** If challenged by leadership, legal, HR, or regulators, can you defend the decision using Evidence alone?
+
+Also ask:
+- Does this meet your regulatory transparency requirements? (Check current dates: EU AI Act high-risk duties deferred to December 2027 / August 2028; NIST IR 8596 is a preliminary draft.)
+- For agents: Are actions logged? On whose authority did each action run?
 
 Document:
-- [ ] Output transparency: clear / opaque
-- [ ] Audit trail: complete / partial / absent
+- [ ] Evidence trail: complete / partial / absent
+- [ ] Explanation available: yes / rationalization only / opaque
+- [ ] Justification possible from evidence: yes / no
 - [ ] Regulatory compliance: confirmed / uncertain / non-compliant
-- [ ] Forensic capability: adequate / inadequate
 
 ---
 
@@ -147,23 +149,27 @@ Produce a summary:
 **Evaluator:** [name]
 **Context:** [procurement / deployment / review]
 
-### Dimension Scores
+### Knowledge Map
 
-| Dimension | Status | Key Findings |
-|-----------|--------|--------------|
+TRACE does not score. For each dimension, record what is known, partially known, or unknown, and the one finding that matters.
+
+| Dimension | Status (known / partial / unknown) | Key Finding |
+|-----------|------------------------------------|-------------|
 | Training | | |
 | Reliability | | |
 | Attack Surface | | |
 | Context | | |
-| Explainability | | |
+| Explainability (Evidence / Explanation / Justification) | | |
 
 ### Critical Gaps
 
-[List what's unknown or concerning]
+[List what's unknown or concerning. "Unknown" is a finding, not a failure of the evaluation.]
 
 ### Recommendations
 
 [Accept / Accept with conditions / Reject / Needs more information]
+
+Apply the substitution rule from the README ("When the Answer Is Unknown"): T unknown plus strong R evidence on the evaluator's own data supports accept-with-conditions; T unknown plus vendor-supplied R metrics only is "needs more information"; T and R both unknown is reject or run as an experiment with no production dependency.
 
 ### Next Steps
 
