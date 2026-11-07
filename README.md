@@ -203,7 +203,7 @@ See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, loggin
 
 | Situation | Time | Focus |
 |-----------|------|-------|
-| Acting on an AI alert | 5 min | R, C, E — Can I trust this output? |
+| Acting on an AI alert | 5 min | R, C, E — Can I trust this output? → [SOC guide](guides/use-cases/soc-alert-triage.md) |
 | Evaluating a vendor | Hours | All five — Structured assessment |
 | Writing AI policy | Days | All five — Map to requirements |
 | Investigating an AI failure | Varies | Diagnostic — Which dimension broke? |
@@ -228,6 +228,7 @@ See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, loggin
 | [Visual Guide](docs/TRACE-visual-guide.md) | Pyramid diagram for teaching and workshops |
 | [Framework Crosswalk](docs/TRACE-crosswalk.md) | Where each TRACE dimension lands in NIST AI RMF, CSF 2.0 (via the Cyber AI Profile), MITRE ATLAS and OWASP |
 | [Case Studies](guides/case-studies/) | TRACE applied retrospectively to public incidents from the MITRE ATLAS catalog |
+| [Use-Case Guides](guides/use-cases/) | Situation-specific walkthroughs; SOC alert triage published, IR and GRC planned |
 | [Agentic AI Supplement](guides/TRACE-agentic-ai.md) | Extended evaluation guidance for AI agents — forensics, logging, policy enforcement |
 | [Agent Runtime Monitoring](guides/TRACE-agent-runtime-monitoring.md) | Detection-side controls — social engineering threat model, model-as-judge, behavioral baselining |
 | [Skills for AI Assistants](skills/) | Prompts to apply TRACE with Claude, Cursor, and other AI tools |
@@ -241,7 +242,8 @@ See **[TRACE for Agentic AI](guides/TRACE-agentic-ai.md)** for forensics, loggin
 - [x] AI assistant skills for practical application
 - [x] Framework crosswalk (NIST AI RMF, CSF 2.0, ATLAS, OWASP)
 - [x] Retrospective case studies from the ATLAS catalog
-- [ ] Use-case guides with worked examples (SOC, IR, GRC)
+- [x] Use-case guide: SOC alert triage
+- [ ] Use-case guides: IR, GRC
 - [ ] Practitioner field-testing and iteration
 
 ## Contributing

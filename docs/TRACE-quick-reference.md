@@ -58,7 +58,7 @@ For closed models, T is usually unknowable. Do not stop there: behavioral eviden
 
 | Situation | Depth | Primary Dimensions |
 |-----------|-------|--------------------|
-| Acting on an AI-generated alert | 5-minute mental check | R, C, E |
+| Acting on an AI-generated alert | 5-minute mental check | R, C, E + [SOC guide](../guides/use-cases/soc-alert-triage.md) |
 | Evaluating a vendor product | Structured evaluation (hours) | All five |
 | Writing AI acceptable use policy | Policy framework | All five |
 | Investigating an AI system failure | Forensic diagnostic | T, R, A first; then C, E |
